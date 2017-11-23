@@ -28,6 +28,7 @@ import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.scene.text.TextAlignment;
 import javafx.stage.Stage;
+import javafx.util.Pair;
 import logic.FieldType;
 import logic.GameCore;
 
@@ -47,7 +48,7 @@ public class Piskvorky extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-       root = new StackPane();
+        root = new StackPane();
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
@@ -57,20 +58,20 @@ public class Piskvorky extends Application {
             }
         }
         repaint(root);
-        
+
         //MAX - Deklarace hry
         hra = new GameCore(WIDTH / 20 - 1, HEIGHT / 20 - 1, this);
         //hra.setWaitTime(500);
-        
+
         scene.setOnKeyPressed(event -> {
-            if (event.getCode()==KeyCode.F1) {
+            if (event.getCode() == KeyCode.F1) {
                 hra.setPlayerToAI(FieldType.CROSS);
-            }else if(event.getCode()==KeyCode.F2){
-        hra.setPlayerToAI(FieldType.WHEEL);
+            } else if (event.getCode() == KeyCode.F2) {
+                hra.setPlayerToAI(FieldType.WHEEL);
             }
         });
-            //
-        
+        //
+
         primaryStage.setTitle("Piškvorky");
         primaryStage.setScene(scene);
         primaryStage.show();
@@ -81,7 +82,7 @@ public class Piskvorky extends Application {
      */
     public static void main(String[] args) {
         launch(args);
-      
+
     }
 
     private Parent createContent() {
@@ -114,7 +115,6 @@ public class Piskvorky extends Application {
         }
     }
 
-
     public class Tile extends StackPane {
 
         private Text text = new Text();
@@ -127,25 +127,22 @@ public class Piskvorky extends Application {
             int text_size = 25;
             text.setText(value);
             text.setFont(Font.font(20));
-//            text.setTranslateX(this.getLayoutX() + 1.5);
-//            text.setTranslateY(this.getLayoutY() - 1);
-
-            //Tile.setAlignment(text, Pos.CENTER);
+            
             setAlignment(Pos.BASELINE_LEFT);
 
             //MAX - změna onclick funkce aby pracovala přes jádro hry
             //setOnMouseClicked(event -> fillField(getFieldType()));
             setOnMouseClicked(event -> makeMove());
-                //
+            //
 
             getChildren().addAll(border, text);
         }
 
         //MAX - funkce pro onclick
         public void makeMove() {
-           hra.playMove(this);
+            hra.playMove(this);
         }
-            //
+        //
 
         public void fillField(FieldType ft) {
             if (text.getText().equals("")) {
@@ -161,6 +158,30 @@ public class Piskvorky extends Application {
                 setIsCross(!isCross);
             }
         }
+
+        public Text getText() {
+            return text;
+        }
+        
+        
     }
 
+    public void paintEndOfGame(List<Pair<Integer, Integer>> endCoords) {
+        List<Pair<Integer, Integer>> recountCoordsForTiles = new ArrayList<>();
+        for (Pair<Integer, Integer> endCoord : endCoords) {
+            recountCoordsForTiles.add(new Pair<>((endCoord.getKey() * WIDTH_OF_ONE_SQUARE)
+                    + WIDTH_OF_ONE_SQUARE/2,(endCoord.getValue()* WIDTH_OF_ONE_SQUARE) 
+                            + WIDTH_OF_ONE_SQUARE/2));        
+        }
+        for (Pair<Integer, Integer> recountCoordsForTile : recountCoordsForTiles) {
+            for (Tile tile : tiles) {
+                if (tile.getTranslateX() == recountCoordsForTile.getKey() && tile.getTranslateY() == recountCoordsForTile.getValue()){
+                    tile.getText().setStroke(Color.RED);
+                    break;
+                }
+            }
+        }
+        
+        
+    }
 }

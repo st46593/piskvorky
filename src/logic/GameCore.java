@@ -1,10 +1,15 @@
 package logic;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
 import piskvorky.Piskvorky;
+import piskvorky.Piskvorky.Tile;
 
 /**
  *
@@ -21,6 +26,7 @@ public class GameCore {
     public boolean humanTurn = true;
     public boolean theEnd = false;
     private final int[][] DIRECTIONS = {{-1, 1, 0, 0, -1, 1, -1, 1}, {-1, 1, -1, 1, 1, -1, 0, 0}};
+    private List<Pair<Integer, Integer>> endCoords = new ArrayList<>();
 
     private GameCore() {
         WIDTH = 3;
@@ -112,6 +118,7 @@ public class GameCore {
 
         if (endGame(coord)) {
             System.out.println("HRA ZKONČILA, GRATULUJI " + onTurn);
+            GUI.paintEndOfGame(endCoords);
         }
 
         onTurn = (onTurn == FieldType.CROSS ? FieldType.WHEEL : FieldType.CROSS);
@@ -140,6 +147,7 @@ public class GameCore {
                 if (board.get(c) == onTurn) {
                     counter++;
                     pocet++;
+                    endCoords.add(c);
                 } else {
                     pokracuj = false;
                 }
@@ -151,18 +159,28 @@ public class GameCore {
                 if (board.get(c) == onTurn) {
                     counter++;
                     pocet++;
+                    endCoords.add(c);
                 } else {
                     pokracuj = false;
                 }
             }
             if (pocet >= 5) {
                 theEnd = true;
+                endCoords.add(coord);
+            }
+            if (!theEnd) {
+                endCoords.clear();
             }
         }
         if (!theEnd && board.size() == (WIDTH * HEIGHT)) {
             theEnd = true;
+
         }
         return theEnd;
+    }
+
+    public List<Pair<Integer, Integer>> getEndCoords() {
+        return endCoords;
     }
 
 }
