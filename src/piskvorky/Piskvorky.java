@@ -1,13 +1,10 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package piskvorky;
 
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -21,6 +18,7 @@ import javafx.scene.control.Button;
 import javafx.scene.input.KeyCode;
 import javafx.scene.layout.StackPane;
 import javafx.scene.paint.Color;
+import javafx.scene.shape.Line;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontPosture;
@@ -43,8 +41,10 @@ public class Piskvorky extends Application {
     private final int HEIGHT = 600;
     private boolean isCross = true;
     public List<Tile> tiles = new ArrayList<>();
+    private Line endLine = null;
     public logic.GameCore hra;
     public StackPane root;
+    //private Scene scene;
 
     @Override
     public void start(Stage primaryStage) {
@@ -70,7 +70,6 @@ public class Piskvorky extends Application {
                 hra.setPlayerToAI(FieldType.WHEEL);
             }
         });
-        //
 
         primaryStage.setTitle("Piškvorky");
         primaryStage.setScene(scene);
@@ -83,10 +82,6 @@ public class Piskvorky extends Application {
     public static void main(String[] args) {
         launch(args);
 
-    }
-
-    private Parent createContent() {
-        return null;
     }
 
     public FieldType getFieldType() {
@@ -115,7 +110,7 @@ public class Piskvorky extends Application {
         }
     }
 
-    public class Tile extends StackPane {
+    public class Tile extends StackPane implements Comparable<Tile> {
 
         private Text text = new Text();
 
@@ -124,10 +119,9 @@ public class Piskvorky extends Application {
             border.setFill(null);
             border.setStroke(Color.BLACK);
 
-            int text_size = 25;
             text.setText(value);
             text.setFont(Font.font(20));
-            
+
             setAlignment(Pos.BASELINE_LEFT);
 
             //MAX - změna onclick funkce aby pracovala přes jádro hry
@@ -162,26 +156,81 @@ public class Piskvorky extends Application {
         public Text getText() {
             return text;
         }
-        
-        
+
+        public double getCenterX() {
+            return getTranslateX() + WIDTH_OF_ONE_SQUARE / 2;
+        }
+
+        public double getCenterY() {
+            return getTranslateY() + WIDTH_OF_ONE_SQUARE / 2;
+        }
+
+        @Override
+        public int compareTo(Tile t) {
+            if (this.getTranslateX() != t.getTranslateX()) {
+                return (int) this.getTranslateX() - (int) t.getTranslateX();
+            } else {
+                return (int) this.getTranslateY() - (int) t.getTranslateY();
+            }
+
+        }
+
     }
 
     public void paintEndOfGame(List<Pair<Integer, Integer>> endCoords) {
+        while (endCoords.size() > 5) {
+                endCoords.remove(endCoords.size() - 2);
+        }
+        for (Pair<Integer, Integer> endCoord : endCoords) {
+            System.out.println(endCoord.getKey() + ", " + endCoord.getValue());
+        }
         List<Pair<Integer, Integer>> recountCoordsForTiles = new ArrayList<>();
         for (Pair<Integer, Integer> endCoord : endCoords) {
             recountCoordsForTiles.add(new Pair<>((endCoord.getKey() * WIDTH_OF_ONE_SQUARE)
-                    + WIDTH_OF_ONE_SQUARE/2,(endCoord.getValue()* WIDTH_OF_ONE_SQUARE) 
-                            + WIDTH_OF_ONE_SQUARE/2));        
+                    + WIDTH_OF_ONE_SQUARE / 2, (endCoord.getValue() * WIDTH_OF_ONE_SQUARE)
+                    + WIDTH_OF_ONE_SQUARE / 2));
         }
+
+        List<Tile> tilesForCrossLine = new ArrayList<>();
         for (Pair<Integer, Integer> recountCoordsForTile : recountCoordsForTiles) {
             for (Tile tile : tiles) {
-                if (tile.getTranslateX() == recountCoordsForTile.getKey() && tile.getTranslateY() == recountCoordsForTile.getValue()){
+                if (tile.getTranslateX() == recountCoordsForTile.getKey()
+                        && tile.getTranslateY() == recountCoordsForTile.getValue()) {
                     tile.getText().setStroke(Color.RED);
+                    tilesForCrossLine.add(tile);
                     break;
                 }
             }
         }
-        
-        
+        Collections.sort(tilesForCrossLine);
+        setEndLine(tilesForCrossLine);
+    }
+
+    private void setEndLine(List<Tile> endTiles) {
+        if (endTiles.get(0).getTranslateX() - endTiles.get(4).getTranslateX() < 0) {
+            if (endTiles.get(0).getTranslateY() - endTiles.get(4).getTranslateY() == 0) {
+                for (Tile endTile : endTiles) {
+                    Line crossLine = new Line(0, 0, 20, 0);
+                    crossLine.setTranslateY(-10);
+                    endTile.getChildren().add(crossLine);
+                }
+            } else if (endTiles.get(0).getTranslateY() - endTiles.get(4).getTranslateY() < 0) {
+                for (Tile endTile : endTiles) {
+                    Line crossLine = new Line(0, 0, 20, 20);
+                    endTile.getChildren().add(crossLine);
+                }
+            } else if (endTiles.get(0).getTranslateY() - endTiles.get(4).getTranslateY() > 0) {
+                for (Tile endTile : endTiles) {
+                    Line crossLine = new Line(0, 20, 20, 0);
+                    endTile.getChildren().add(crossLine);
+                }
+            }
+        } else {
+            for (Tile endTile : endTiles) {
+                Line crossLine = new Line(0, 0, 0, 20);
+                crossLine.setTranslateX(10);
+                endTile.getChildren().add(crossLine);
+            }
+        }
     }
 }

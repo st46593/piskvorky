@@ -2,14 +2,12 @@ package logic;
 
 import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
 import piskvorky.Piskvorky;
-import piskvorky.Piskvorky.Tile;
 
 /**
  *
@@ -20,7 +18,7 @@ public class GameCore {
     private long waitTimeMs = -1;
     private final int WIDTH, HEIGHT;
     private final Player playerX, playerO;
-    private final HashMap<Pair<Integer, Integer>, FieldType> board;
+    private final Stav board;
     private final piskvorky.Piskvorky GUI;
     public FieldType onTurn;
     public boolean humanTurn = true;
@@ -31,9 +29,9 @@ public class GameCore {
     private GameCore() {
         WIDTH = 3;
         HEIGHT = 3;
-        playerO = new Player(FieldType.WHEEL);
-        playerX = new Player(FieldType.CROSS);
-        board = new HashMap<>();
+        playerO = new Player(FieldType.WHEEL, 3, 3);
+        playerX = new Player(FieldType.CROSS, 3, 3);
+        board = new Stav(WIDTH, HEIGHT);
         onTurn = FieldType.CROSS;
         GUI = null;
     }
@@ -41,9 +39,9 @@ public class GameCore {
     public GameCore(int width, int height, piskvorky.Piskvorky main) {
         WIDTH = Math.max(width, 5);
         HEIGHT = Math.max(height, 5);
-        playerO = new Player(FieldType.WHEEL);
-        playerX = new Player(FieldType.CROSS);
-        board = new HashMap<>();
+        playerO = new Player(FieldType.WHEEL, WIDTH, HEIGHT);
+        playerX = new Player(FieldType.CROSS, WIDTH, HEIGHT);
+        board = new Stav(WIDTH, HEIGHT);
         onTurn = FieldType.CROSS;
         GUI = main;
     }
@@ -69,13 +67,14 @@ public class GameCore {
             }
         }
         if (!theEnd) {
-            Pair<Integer, Integer> coords;
-            while (true) {
-                coords = new Pair<>((int) (Math.random() * WIDTH), (int) (Math.random() * HEIGHT));
-                if (board.get(coords) == null) {
-                    break;
-                }
-            }
+//             Pair<Integer, Integer> coords;
+//            while (true) {
+//                coords = new Pair<>((int) (Math.random() * WIDTH), (int) (Math.random() * HEIGHT));
+//                if (board.get(coords) == null) {
+//                    break;
+//                }
+//            }
+            Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
             doMove(coords);
             GUI.repaint(GUI.root);
             if (!humanTurn) {
@@ -114,11 +113,11 @@ public class GameCore {
         }
         tile.fillField(onTurn);
 
-        board.put(coord, onTurn);
+        board.applyMove(coord, onTurn);
 
         if (endGame(coord)) {
-            System.out.println("HRA ZKONČILA, GRATULUJI " + onTurn);
             GUI.paintEndOfGame(endCoords);
+            System.out.println("HRA ZKONČILA, GRATULUJI " + onTurn);
         }
 
         onTurn = (onTurn == FieldType.CROSS ? FieldType.WHEEL : FieldType.CROSS);
@@ -147,7 +146,9 @@ public class GameCore {
                 if (board.get(c) == onTurn) {
                     counter++;
                     pocet++;
-                    endCoords.add(c);
+                    if (endCoords.size() < 5) {
+                        endCoords.add(c);
+                    }
                 } else {
                     pokracuj = false;
                 }
@@ -159,7 +160,9 @@ public class GameCore {
                 if (board.get(c) == onTurn) {
                     counter++;
                     pocet++;
-                    endCoords.add(c);
+                    if (endCoords.size() < 5) {
+                        endCoords.add(c);
+                    }
                 } else {
                     pokracuj = false;
                 }
@@ -174,13 +177,91 @@ public class GameCore {
         }
         if (!theEnd && board.size() == (WIDTH * HEIGHT)) {
             theEnd = true;
-
+            endCoords.clear();
         }
         return theEnd;
+    }
+
+    public Pair<Integer, Integer> endOfMiniMax(FieldType fl, Stav now) {
+        ArrayList<Stav> ar = miniMax(fl, now);
+        int value;
+        if (onTurn == FieldType.WHEEL) {
+            value = Integer.MAX_VALUE;
+        } else {
+            value = Integer.MIN_VALUE;
+        }
+        Pair<Integer, Integer> coord = null;
+        for (int i = 0; i < ar.size(); i++) {
+            if (onTurn == FieldType.WHEEL && value > ar.get(i).getHeuristic()) {
+                value = ar.get(i).getHeuristic();
+                coord = ar.get(i).getStepToThisState();
+            }
+            if (onTurn == FieldType.CROSS && value < ar.get(i).getHeuristic()) {
+                value = ar.get(i).getHeuristic();
+                coord = ar.get(i).getStepToThisState();
+            }
+        }
+
+        return coord;
+    }
+
+    public ArrayList<Stav> miniMax(FieldType fl, Stav now) {
+        ArrayList<Pair<Integer, Integer>> possibleActions = now.getActions();
+        ArrayList<Stav> st = new ArrayList<>();
+        for (Pair<Integer, Integer> move : possibleActions) {
+            if (fl == FieldType.CROSS) {
+                Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.CROSS);
+                s.setStepToThisState(move);
+                s.setHeuristic(max(s, move));
+                st.add(s);
+
+            } else {
+                Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.WHEEL);
+                s.setStepToThisState(move);
+                s.setHeuristic(min(s, move));
+                st.add(s);
+            }
+        }
+
+        return st;
+    }
+
+    public int max(Stav s, Pair<Integer, Integer> move) {
+        if (endGame(move) || s.getDeep() == 0) {
+            int value = s.getHeuristicFor(playerX);
+            s.setHeuristic(value);
+            return value;
+        } else {
+            ArrayList<Stav> state = miniMax(FieldType.WHEEL, s);
+            int max = Integer.MIN_VALUE;
+            for (int i = 0; i < state.size(); i++) {
+                if (state.get(i).getHeuristic() > max) {
+                    max = state.get(i).getHeuristic();
+                }
+            }
+            return max;
+        }
+    }
+
+    public int min(Stav s, Pair<Integer, Integer> move) {
+        if (endGame(move) || s.getDeep() == 0) {
+            int value = s.getHeuristicFor(playerO);
+            s.setHeuristic(value);
+            return value;
+        } else {
+            ArrayList<Stav> state = miniMax(FieldType.CROSS, s);
+            int min = Integer.MAX_VALUE;
+            for (int i = 0; i < state.size(); i++) {
+                if (state.get(i).getHeuristic() < min) {
+                    min = state.get(i).getHeuristic();
+                }
+            }
+            return min;
+        }
+
     }
 
     public List<Pair<Integer, Integer>> getEndCoords() {
         return endCoords;
     }
-
 }
