@@ -46,7 +46,7 @@ public class GameCore {
         GUI = main;
     }
 
-    public void setPlayerToAI(FieldType who) {
+    public boolean setPlayerToAI(FieldType who) {
         if (who == FieldType.CROSS) {
             playerX.controledByAI = true;
         } else {
@@ -54,11 +54,13 @@ public class GameCore {
         }
         if (who == onTurn) {
             humanTurn = false;
-            makeMoveByAI();
+          //  makeMoveByAI();
+          return true;
         }
+        return false;
     }
 
-    private void makeMoveByAI() {
+    public boolean makeMoveByAI() {
         if (waitTimeMs > 0) {
             try {
                 Thread.sleep(waitTimeMs);
@@ -77,10 +79,9 @@ public class GameCore {
             Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
             doMove(coords);
             GUI.repaint(GUI.root);
-            if (!humanTurn) {
-                makeMoveByAI();
-            }
+            return !humanTurn;
         }
+        return false;
     }
 
     public boolean playMove(piskvorky.Piskvorky.Tile tile) {
@@ -89,12 +90,7 @@ public class GameCore {
                     ((int) tile.getTranslateY() - 10) / 20);
             if (board.get(coords) == null) {
                 doMove(coords);
-                if (!humanTurn) {
-                    makeMoveByAI();
-                }
-                return true;
-            } else {
-                return false;
+                return !humanTurn;
             }
         }
         return false;

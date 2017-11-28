@@ -6,9 +6,12 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Application;
+import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.event.EventHandler;
 import javafx.geometry.Pos;
@@ -44,36 +47,69 @@ public class Piskvorky extends Application {
     private Line endLine = null;
     public logic.GameCore hra;
     public StackPane root;
+    private static Timer timer;
+    private static TimerTask waitForPaint;
     //private Scene scene;
 
     @Override
     public void start(Stage primaryStage) {
         root = new StackPane();
+//        timer = new Timer("casovac");
+//        waitForPaint = new TimerTask() {
+//            @Override
+//            public void run() {
+//                repaint(root);
+//            }
+//        };
 
         Scene scene = new Scene(root, WIDTH, HEIGHT);
 
         for (int i = WIDTH_OF_ONE_SQUARE; i < WIDTH; i += WIDTH_OF_ONE_SQUARE) {
             for (int j = WIDTH_OF_ONE_SQUARE; j < HEIGHT; j += WIDTH_OF_ONE_SQUARE) {
-                tiles.add(new Tile(""));
+                Tile t = new Tile("");
+                t.getText().setStroke(Color.BLACK);
+                tiles.add(t);
             }
         }
-        repaint(root);
 
+        repaint(root);
         //MAX - Deklarace hry
         hra = new GameCore(WIDTH / 20 - 1, HEIGHT / 20 - 1, this);
         //hra.setWaitTime(500);
 
         scene.setOnKeyPressed(event -> {
             if (event.getCode() == KeyCode.F1) {
-                hra.setPlayerToAI(FieldType.CROSS);
+                if (hra.setPlayerToAI(FieldType.CROSS)) {
+                    makeAImove();
+                }
             } else if (event.getCode() == KeyCode.F2) {
-                hra.setPlayerToAI(FieldType.WHEEL);
+                if (hra.setPlayerToAI(FieldType.WHEEL)) {
+                    makeAImove();
+                }
+            } else if (event.getCode() == KeyCode.SPACE) {
+                if (!hra.humanTurn) {
+                    makeAImove();
+                }
+            } else if (event.getCode() == KeyCode.ENTER) {
+                if (hra.theEnd) {
+                    tiles.clear();
+                    for (int i = WIDTH_OF_ONE_SQUARE; i < WIDTH; i += WIDTH_OF_ONE_SQUARE) {
+                        for (int j = WIDTH_OF_ONE_SQUARE; j < HEIGHT; j += WIDTH_OF_ONE_SQUARE) {
+                            Tile t = new Tile("");
+                            t.getText().setStroke(Color.BLACK);
+                            tiles.add(t);
+                        }
+                    }
+                    hra = new GameCore(WIDTH / 20 - 1, HEIGHT / 20 - 1, this);
+                    repaint(root);
+                }
             }
         });
-
+        //Platform.setImplicitExit(false);
         primaryStage.setTitle("Piškvorky");
         primaryStage.setScene(scene);
         primaryStage.show();
+        //timer.schedule(waitForPaint, 10000, 1000);
     }
 
     /**
@@ -134,7 +170,9 @@ public class Piskvorky extends Application {
 
         //MAX - funkce pro onclick
         public void makeMove() {
-            hra.playMove(this);
+            if (hra.playMove(this)) {
+                makeAImove();
+            }
         }
         //
 
@@ -177,9 +215,13 @@ public class Piskvorky extends Application {
 
     }
 
+    public void makeAImove() {
+        hra.makeMoveByAI();
+    }
+
     public void paintEndOfGame(List<Pair<Integer, Integer>> endCoords) {
         while (endCoords.size() > 5) {
-                endCoords.remove(endCoords.size() - 2);
+            endCoords.remove(endCoords.size() - 2);
         }
         for (Pair<Integer, Integer> endCoord : endCoords) {
             System.out.println(endCoord.getKey() + ", " + endCoord.getValue());
