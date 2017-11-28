@@ -1,9 +1,7 @@
 package logic;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.util.Pair;
@@ -54,8 +52,8 @@ public class GameCore {
         }
         if (who == onTurn) {
             humanTurn = false;
-          //  makeMoveByAI();
-          return true;
+            //  makeMoveByAI();
+            return true;
         }
         return false;
     }
@@ -78,6 +76,9 @@ public class GameCore {
 //            }
             Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
             doMove(coords);
+            board.setAlfaStart();
+            board.setBetaStart();
+
             GUI.repaint(GUI.root);
             return !humanTurn;
         }
@@ -187,7 +188,6 @@ public class GameCore {
         } else {
             value = Integer.MIN_VALUE;
         }
-
         Pair<Integer, Integer> coord = null;
         for (int i = 0; i < ar.size(); i++) {
             if (onTurn == FieldType.WHEEL && value > ar.get(i).getHeuristic()) {
@@ -199,6 +199,8 @@ public class GameCore {
                 coord = ar.get(i).getStepToThisState();
             }
         }
+        now.setAlfa(Integer.MIN_VALUE);
+        now.setBeta(Integer.MAX_VALUE);
         return coord;
     }
 
@@ -207,19 +209,28 @@ public class GameCore {
         ArrayList<Stav> st = new ArrayList<>();
         for (Pair<Integer, Integer> move : possibleActions) {
             if (fl == FieldType.CROSS) {
-                Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.CROSS);
-                s.setStepToThisState(move);
-                s.setHeuristic(max(s, move));
-                st.add(s);
-
+                if (now.getAlfa() < now.getBeta()) {
+                    Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.CROSS);
+                    s.setStepToThisState(move);
+                    s.setHeuristic(max(s, move));
+                    if (s.getHeuristic() > now.getAlfa()) {
+                        now.setAlfa(s.getHeuristic());
+                    }
+                    st.add(s);
+                }
             } else {
-                Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.WHEEL);
-                s.setStepToThisState(move);
-                s.setHeuristic(min(s, move));
-                st.add(s);
+
+                if (now.getAlfa() < now.getBeta()) {
+                    Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.WHEEL);
+                    s.setStepToThisState(move);
+                    s.setHeuristic(min(s, move));
+                    if (s.getHeuristic() < now.getBeta()) {
+                        now.setBeta(s.getHeuristic());
+                    }
+                    st.add(s);
+                }
             }
         }
-
         return st;
     }
 
@@ -236,6 +247,7 @@ public class GameCore {
                     max = state.get(i).getHeuristic();
                 }
             }
+
             return max;
         }
     }
@@ -253,6 +265,7 @@ public class GameCore {
                     min = state.get(i).getHeuristic();
                 }
             }
+
             return min;
         }
 

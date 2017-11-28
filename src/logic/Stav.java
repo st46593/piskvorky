@@ -18,12 +18,15 @@ public class Stav {
     private int heuristic;
     private int deep;
     private Pair<Integer, Integer> stepToThisState;
+    public Stav before;
+    public final int ACTUAL_DEEP = 6;
 
     private Stav() {
         board = new HashMap<>();
         posibleActions = new HashMap<>();
         WIDTH = 3;
         HEIGHT = 3;
+        deep= ACTUAL_DEEP;
     }
 
     public Stav(int width, int height) {
@@ -33,7 +36,8 @@ public class Stav {
         HEIGHT = height;
         alfa = Integer.MIN_VALUE;
         beta = Integer.MAX_VALUE;
-        deep = 4;
+        deep = ACTUAL_DEEP;
+        before = null;
         stepToThisState = null;
     }
 
@@ -47,6 +51,7 @@ public class Stav {
         alfa = s.getAlfa();
         beta = s.getBeta();
         deep = s.getDeep() - 1;
+        before = s;
         stepToThisState = null;
     }
 
@@ -75,12 +80,24 @@ public class Stav {
     }
 
     public void setAlfa(int alfa) {
-        this.alfa = alfa;
+        if (alfa > this.alfa) {
+            this.alfa = alfa;
+        }
     }
 
     public void setBeta(int beta) {
-        this.beta = beta;
+        if (beta < this.beta) {
+            this.beta = beta;
+        }
+
     }
+     public void setAlfaStart() {
+        this.alfa = Integer.MIN_VALUE;
+            }
+
+    public void setBetaStart() {
+        this.beta = Integer.MAX_VALUE;
+           }
 
     public int getAlfa() {
         return alfa;
@@ -93,6 +110,7 @@ public class Stav {
     public FieldType get(Pair<Integer, Integer> coord) {
         return board.get(coord);
     }
+    
 
     public void applyMove(Pair<Integer, Integer> coord, FieldType mark) {
         board.put(coord, mark);
