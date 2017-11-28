@@ -33,7 +33,7 @@ public class Stav {
         HEIGHT = height;
         alfa = Integer.MIN_VALUE;
         beta = Integer.MAX_VALUE;
-        deep = 3    ;
+        deep = 4;
         stepToThisState = null;
     }
 
@@ -121,7 +121,7 @@ public class Stav {
                 posibleActions.remove(move);
             }
         }
-        moves = new ArrayList<>();
+        moves.clear();
         moves.addAll(posibleActions.keySet());
         return moves;
     }

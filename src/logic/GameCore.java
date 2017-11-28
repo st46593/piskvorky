@@ -141,7 +141,7 @@ public class GameCore {
             counter = 1;
             pocet = 1;
             pokracuj = true;
-            while (counter < 6 && pokracuj) {
+            while (pokracuj) {
                 c = new Pair<>(coord.getKey() + DIRECTIONS[0][i] * counter, coord.getValue() + DIRECTIONS[1][i] * counter);
                 if (board.get(c) == onTurn) {
                     counter++;
@@ -155,7 +155,7 @@ public class GameCore {
             }
             counter = 1;
             pokracuj = true;
-            while (counter < 6 && pokracuj) {
+            while (pokracuj) {
                 c = new Pair<>(coord.getKey() + DIRECTIONS[0][i + 1] * counter, coord.getValue() + DIRECTIONS[1][i + 1] * counter);
                 if (board.get(c) == onTurn) {
                     counter++;
@@ -170,6 +170,7 @@ public class GameCore {
             if (pocet >= 5) {
                 theEnd = true;
                 endCoords.add(coord);
+                break;
             }
             if (!theEnd) {
                 endCoords.clear();
@@ -190,6 +191,7 @@ public class GameCore {
         } else {
             value = Integer.MIN_VALUE;
         }
+
         Pair<Integer, Integer> coord = null;
         for (int i = 0; i < ar.size(); i++) {
             if (onTurn == FieldType.WHEEL && value > ar.get(i).getHeuristic()) {
@@ -201,7 +203,6 @@ public class GameCore {
                 coord = ar.get(i).getStepToThisState();
             }
         }
-
         return coord;
     }
 
@@ -245,7 +246,7 @@ public class GameCore {
 
     public int min(Stav s, Pair<Integer, Integer> move) {
         if (endGame(move) || s.getDeep() == 0) {
-            int value = s.getHeuristicFor(playerO);
+            int value = s.getHeuristicFor(playerX);
             s.setHeuristic(value);
             return value;
         } else {
