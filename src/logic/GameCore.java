@@ -76,13 +76,12 @@ public class GameCore {
 //                }
 //            }
             Pair<Integer, Integer> coords;
-            
-            coords = endOfMiniMax(onTurn, board); 
-           //coords = MiniMaxV2.MiniMax();
-            
-            
+
+            coords = endOfMiniMax(onTurn, board);
+            //coords = MiniMaxV2.MiniMax();
+
             doMove(coords);
-          // System.out.println(board.getHeuristicFor(playerX));
+            // System.out.println(board.getHeuristicFor(playerX));
             board.setAlfaStart();
             board.setBetaStart();
 
@@ -186,7 +185,8 @@ public class GameCore {
         }
         return theEnd;
     }
-  public boolean posibleEndGame(Pair<Integer, Integer> coord,Stav s) {
+
+    public boolean posibleEndGame(Pair<Integer, Integer> coord, Stav s) {
         int counter;
         int pocet = 0;
         boolean pokracuj;
@@ -221,7 +221,6 @@ public class GameCore {
                 }
             }
             if (pocet >= 5) {
-                //System.out.println("!-posible end game for "+onTurn);
                 konec = true;
                 break;
             }
@@ -250,9 +249,9 @@ public class GameCore {
                 value = ar.get(i).getHeuristic();
                 coord = ar.get(i).getStepToThisState();
             }
-          //  System.out.println("i="+i+" - "+ar.get(i).getStepToThisState()+" - "+ar.get(i).getHeuristic());
+
         }
-        //System.out.println(coord+" - "+value);
+
         return coord;
     }
 
@@ -261,7 +260,7 @@ public class GameCore {
         ArrayList<Stav> st = new ArrayList<>();
         for (Pair<Integer, Integer> move : possibleActions) {
             if (fl == FieldType.CROSS) {
-              //  if (now.getAlfa() < now.getBeta()) {
+                if (now.getAlfa() < now.getBeta()) {
                     Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.CROSS);
                     s.setStepToThisState(move);
                     s.setHeuristic(max(s, move));
@@ -269,10 +268,10 @@ public class GameCore {
                         now.setAlfa(s.getHeuristic());
                     }
                     st.add(s);
-               // }
+                }
             } else {
 
-               // if (now.getAlfa() < now.getBeta()) {
+                if (now.getAlfa() < now.getBeta()) {
                     Stav s = now.getCoppyWithMove(move.getKey(), move.getValue(), FieldType.WHEEL);
                     s.setStepToThisState(move);
                     s.setHeuristic(min(s, move));
@@ -280,7 +279,7 @@ public class GameCore {
                         now.setBeta(s.getHeuristic());
                     }
                     st.add(s);
-               // }
+                }
             }
         }
         return st;
@@ -288,10 +287,7 @@ public class GameCore {
 
     public int max(Stav s, Pair<Integer, Integer> move) {
         if (posibleEndGame(move, s) || s.getDeep() == 0) {
-            int value = s.getHeuristicFor(playerX);
-           // System.out.println("*"+value);
-           // s.setHeuristic(value);
-            return value;
+            return s.getHeuristicFor(playerX);
         } else {
             ArrayList<Stav> state = miniMax(FieldType.WHEEL, s);
             int max = Integer.MAX_VALUE;
@@ -306,10 +302,9 @@ public class GameCore {
     }
 
     public int min(Stav s, Pair<Integer, Integer> move) {
-        if (posibleEndGame(move,s) || s.getDeep() == 0) {
-            int value = s.getHeuristicFor(playerX);
-          //  s.setHeuristic(value);
-            return value;
+        if (posibleEndGame(move, s) || s.getDeep() == 0) {
+            return s.getHeuristicFor(playerX);
+
         } else {
             ArrayList<Stav> state = miniMax(FieldType.CROSS, s);
             int min = Integer.MIN_VALUE;
