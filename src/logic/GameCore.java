@@ -15,8 +15,8 @@ public class GameCore {
 
     private long waitTimeMs = -1;
     private final int WIDTH, HEIGHT;
-    private final Player playerX, playerO;
-    private final Stav board;
+    public final Player playerX, playerO;
+    public final Stav board;
     private final piskvorky.Piskvorky GUI;
     public FieldType onTurn;
     public boolean humanTurn = true;
@@ -42,6 +42,7 @@ public class GameCore {
         board = new Stav(WIDTH, HEIGHT);
         onTurn = FieldType.CROSS;
         GUI = main;
+        MiniMaxV2.Init(this);
     }
 
     public boolean setPlayerToAI(FieldType who) {
@@ -74,7 +75,8 @@ public class GameCore {
 //                    break;
 //                }
 //            }
-            Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
+          //  Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
+            Pair<Integer, Integer> coords = MiniMaxV2.MiniMax();
             doMove(coords);
           // System.out.println(board.getHeuristicFor(playerX));
             board.setAlfaStart();
@@ -180,7 +182,7 @@ public class GameCore {
         }
         return theEnd;
     }
-  private boolean posibleEndGame(Pair<Integer, Integer> coord,Stav s) {
+  public boolean posibleEndGame(Pair<Integer, Integer> coord,Stav s) {
         int counter;
         int pocet = 0;
         boolean pokracuj;
@@ -191,7 +193,8 @@ public class GameCore {
             pocet = 1;
             pokracuj = true;
             while (pokracuj) {
-                c = new Pair<>(coord.getKey() + DIRECTIONS[0][i] * counter, coord.getValue() + DIRECTIONS[1][i] * counter);
+                c = new Pair<>(coord.getKey() + DIRECTIONS[0][i] * counter,
+                        coord.getValue() + DIRECTIONS[1][i] * counter);
                 if (s.get(c) == onTurn) {
                     counter++;
                     pocet++;
