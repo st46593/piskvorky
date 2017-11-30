@@ -75,8 +75,12 @@ public class GameCore {
 //                    break;
 //                }
 //            }
-          //  Pair<Integer, Integer> coords = endOfMiniMax(onTurn, board);
-            Pair<Integer, Integer> coords = MiniMaxV2.MiniMax();
+            Pair<Integer, Integer> coords;
+            
+            coords = endOfMiniMax(onTurn, board); 
+           //coords = MiniMaxV2.MiniMax();
+            
+            
             doMove(coords);
           // System.out.println(board.getHeuristicFor(playerX));
             board.setAlfaStart();
@@ -246,9 +250,9 @@ public class GameCore {
                 value = ar.get(i).getHeuristic();
                 coord = ar.get(i).getStepToThisState();
             }
-            System.out.println("i="+i+" - "+ar.get(i).getStepToThisState()+" - "+ar.get(i).getHeuristic());
+          //  System.out.println("i="+i+" - "+ar.get(i).getStepToThisState()+" - "+ar.get(i).getHeuristic());
         }
-        System.out.println(coord+" - "+value);
+        //System.out.println(coord+" - "+value);
         return coord;
     }
 
@@ -290,9 +294,9 @@ public class GameCore {
             return value;
         } else {
             ArrayList<Stav> state = miniMax(FieldType.WHEEL, s);
-            int max = Integer.MIN_VALUE;
+            int max = Integer.MAX_VALUE;
             for (int i = 0; i < state.size(); i++) {
-                if (state.get(i).getHeuristic() > max) {
+                if (state.get(i).getHeuristic() < max) {
                     max = state.get(i).getHeuristic();
                 }
             }
@@ -308,9 +312,9 @@ public class GameCore {
             return value;
         } else {
             ArrayList<Stav> state = miniMax(FieldType.CROSS, s);
-            int min = Integer.MAX_VALUE;
+            int min = Integer.MIN_VALUE;
             for (int i = 0; i < state.size(); i++) {
-                if (state.get(i).getHeuristic() < min) {
+                if (state.get(i).getHeuristic() > min) {
                     min = state.get(i).getHeuristic();
                 }
             }
