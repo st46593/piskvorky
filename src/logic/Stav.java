@@ -19,7 +19,7 @@ public class Stav {
     private int deep;
     private Pair<Integer, Integer> stepToThisState;
     public Stav before;
-    public final int ACTUAL_DEEP = 3;
+    public final int ACTUAL_DEEP = 4;
 
     private Stav() {
         board = new HashMap<>();
