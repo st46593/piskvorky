@@ -188,7 +188,7 @@ public class GameCore {
 
     public boolean posibleEndGame(Pair<Integer, Integer> coord, Stav s) {
         int counter;
-        int pocet = 0;
+        int pocet;
         boolean pokracuj;
         boolean konec = false;
         Pair<Integer, Integer> c;
@@ -202,9 +202,6 @@ public class GameCore {
                 if (s.get(c) == onTurn) {
                     counter++;
                     pocet++;
-                    if (endCoords.size() < 5) {
-                        endCoords.add(c);
-                    }
                 } else {
                     pokracuj = false;
                 }
@@ -221,8 +218,7 @@ public class GameCore {
                 }
             }
             if (pocet >= 5) {
-                konec = true;
-                break;
+                return true;
             }
         }
         if (!konec && board.size() == (WIDTH * HEIGHT)) {
